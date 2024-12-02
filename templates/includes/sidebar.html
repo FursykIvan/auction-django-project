@@ -1,0 +1,26 @@
+<ul class="nav bg-info">
+  <li class="nav-item">
+    <a class="nav-link link-light" href="{% url "home" %}">HOME</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link link-light" href="{% url "message-list" %}">MESSAGES</a>
+  </li>
+  {% if not user.is_authenticated %}
+    <li class="nav-item">
+      <a class="nav-link link-light" href="{% url "accounts:login" %}">Log In</a>
+    </li>
+    		<li class="nav-item">
+    			<a class="nav-link link-light" href="{% url "accounts:register" %}">Sign Up</a>
+    		</li>
+  {% else %}
+    <li class="nav-item">
+      <a class="nav-link link-light" href={% url "accounts:user-detail" user.pk %}>{{ user.username }}</a>
+    </li>
+    <li class="nav-item">
+      <form action="{% url 'accounts:logout' %}" method="post" style="margin: 0; padding: 0;">
+        {% csrf_token %}
+        <a class="nav-link link-light" href="#" onclick="this.parentNode.submit();">Log Out</a>
+      </form>
+    </li>
+  {% endif %}
+</ul>

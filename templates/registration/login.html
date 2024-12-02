@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  {% include "includes/messages.html" %}
+  <div class="container">
+    <h2>Log in here</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Log in</button>
+    </form>
+    <br>
+    <a href={% url "accounts:register" %}>Click here to Sign Up</a>
+  </div>
+{% endblock %}
