@@ -6,6 +6,7 @@ from django.utils.timezone import now
 from django.utils import timezone
 
 from accounts.models import UserDetails
+from auction.forms import TopUpForm, CommentForm
 from auction.models import Auction, WatchList, Bid
 from django.contrib.auth import get_user_model
 from django.views import generic
