@@ -8,13 +8,14 @@ from django.db import IntegrityError
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect, HttpRequest
 from django.contrib.auth import authenticate, login, logout
+from django.views.decorators.csrf import csrf_exempt
 
 from auction.models import Auction, User, Category, Bid, Comment
 
 
 class IndexView(generic.ListView):
     model = Auction
-    template_name = "auctions/index.html"
+    template_name = "auction/index.html"
     context_object_name = "objects"
 
     def get_queryset(self):
@@ -23,7 +24,7 @@ class IndexView(generic.ListView):
 
 class AllListingsView(generic.ListView):
     model = Auction
-    template_name = "auctions/index.html"
+    template_name = "auction/index.html"
     context_object_name = "objects"
 
     def get_queryset(self):
@@ -39,11 +40,11 @@ def login_view(request):
             login(request, user)
             return HttpResponseRedirect(reverse("index"))
         else:
-            return render(request, "auctions/login.html", {
+            return render(request, "auction/login.html", {
                 "message": "Invalid username and/or password."
             })
     else:
-        return render(request, "auctions/login.html")
+        return render(request, "auction/login.html")
 
 
 @login_required
@@ -51,7 +52,7 @@ def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("index"))
 
-
+@csrf_exempt
 def register(request):
     if request.method == "POST":
         username = request.POST["username"]
@@ -59,7 +60,7 @@ def register(request):
         password = request.POST["password"]
         confirmation = request.POST["confirmation"]
         if password != confirmation:
-            return render(request, "auctions/register.html", {
+            return render(request, "auction/register.html", {
                 "message": "Passwords must match."
             })
 
@@ -67,32 +68,35 @@ def register(request):
             user = User.objects.create_user(username, email, password)
             user.save()
         except IntegrityError:
-            return render(request, "auctions/register.html", {
+            return render(request, "auction/register.html", {
                 "message": "Username already taken."
             })
         login(request, user)
-        return HttpResponseRedirect(reverse("index"))
+        return HttpResponseRedirect(reverse("auction:index"))
     else:
-        return render(request, "auctions/register.html")
+        return render(request, "auction/register.html")
+
 
 @login_required
-def createlisting(request: HttpRequest) -> HttpResponse:
+def createlisting(request):
     if request.method == 'POST':
         title = request.POST["title"]
         description = request.POST["description"]
-        start_bid = request.POST["startBid"]
+        startbid = request.POST["startBid"]
         category = Category.objects.get(id=request.POST["category"])
         user = request.user
-        image = request.POST["url"]
-        if image == "":
-            image = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/300px-No_image_available.svg.png"
+        imageurl = request.POST["url"]
+        if imageurl == '':
+            imageurl = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/300px-No_image_available.svg.png"
         listing = Auction.objects.create(
-            name=title, category=category, date=timezone.now(), startBid=start_bid, description=description, user=user, imageUrl=image, active=True)
+            name=title, category=category, date=timezone.now(), startbid=startbid, description=description, user=user, imageurl=imageurl, active=True)
         listing.save()
         return HttpResponseRedirect(reverse("index"))
-    return render(request, "auctions/createlisting.html", {
-        "categories": Category.objects.all()
+    return render(request, "auction/createListing.html", {
+        'categories': Category.objects.all()
     })
+
+
 
 def details(request: HttpRequest, pk: int) -> HttpResponse:
     item = Auction.objects.get(pk=pk)
@@ -102,7 +106,7 @@ def details(request: HttpRequest, pk: int) -> HttpResponse:
     bid = None
     if value is not None:
         bid = Bid.objects.filter(bidValue=value)[0]
-    return render(request, "auctions/details.html", {
+    return render(request, "auction/details.html", {
         "item": item,
         "bids": bids,
         "comments": comments,
@@ -120,7 +124,7 @@ def categories(request):
         else:
             messages.warning(request, "Category already Exists!")
         return HttpResponseRedirect(reverse("categories"))
-    return render(request, "auctions/categories.html", {
+    return render(request, "auction/categories.html", {
         'categories': Category.objects.all()
     })
 
@@ -128,7 +132,7 @@ def categories(request):
 def filter_by_category(request: HttpRequest, name: str) -> HttpResponse:
     category = Category.objects.get(name=name)
     obj = Auction.objects.filter(category=category)
-    return render(request, "auctions/index.html", {
+    return render(request, "auction/index.html", {
         "objects": obj
     })
 
@@ -185,14 +189,14 @@ def auction_ending(request, item_id: int) -> HttpResponse:
 def watchlist(request):
     if request.method == 'POST':
         user = request.user
-        auction = Auction.objects.get(id=request.POST["item"])
+        auctionlisting = Auction.objects.get(id=request.POST["item"])
         if request.POST["status"] == '1':
-            user.watchlist.add(auction)
+            user.watchlist.add(auctionlisting)
         else:
-            user.watchlist.remove(auction)
+            user.watchlist.remove(auctionlisting)
         user.save()
         return HttpResponseRedirect(
-            reverse("details", kwargs={'id': auction.id}))
+            reverse("details", kwargs={'id': auctionlisting.id}))
     return HttpResponseRedirect(reverse("index"))
 
 
@@ -200,6 +204,7 @@ def watchlist(request):
 def watch(request):
     user = request.user
     obj = user.watchlist.all()
-    return render(request, "auctions/index.html", {
+    return render(request, "auction/index.html", {
         "objects": obj
     })
+

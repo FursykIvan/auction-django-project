@@ -24,6 +24,7 @@ class Auction(models.Model):
                 f"Posted By : {self.user.username} Active Status: {self.active}")
 
 class Category(models.Model):
+    name = models.CharField(max_length=255, default="Unknown")
     title = models.CharField(max_length=100)
 
     def __str__(self):

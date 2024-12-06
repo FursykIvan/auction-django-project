@@ -1,0 +1,60 @@
+{% extends "auction/base.html" %}
+
+{% block title %}
+Create Listing
+{% endblock %}
+
+{% block body %}
+
+<div class="pt-4 mt-4">
+    <form action="{% url 'auction:createListing' %}" method="post">
+        {% csrf_token %}
+        <div class="form-row form-group mt-2">
+            <div class="col">
+                <label for="title">Title</label>
+              <label>
+                <input autofocus type="text" placeholder="Enter Title" name="title" class="form-control">
+              </label>
+            </div>
+            <div class="col">
+                <label for="startBid">Starting Bid</label>
+              <label>
+                <input type="number" name="startBid" class="form-control" placeholder="0.0" step=".01">
+              </label>
+            </div>
+        </div>
+
+        <div class="form-group mt-2">
+            <label for="description">Description</label>
+          <label>
+<textarea class="form-control" name="description" rows="3"
+    placeholder="Enter Description of Product"></textarea>
+          </label>
+        </div>
+        <div class="form-row form-group mt-2">
+            <div class="col">
+                <label for="url">Image Url</label>
+              <label>
+                <input type="url" placeholder="Enter Image Url" name="url" class="form-control">
+              </label>
+            </div>
+            <div class="col">
+                <label for="category">Category</label>
+              <label>
+                <select class="form-control" name="category">
+                    {% for category in categories %}
+                    <option value={{ category }}>
+                        {{ category.title }}
+                    </option>
+                    {% endfor %}
+                </select>
+              </label>
+            </div>
+        </div>
+        <div class="text-center">
+            <button type="submit" class="gradient-button add-listing">Submit</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
